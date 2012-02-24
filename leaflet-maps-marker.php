@@ -44,6 +44,8 @@ if ( ! defined( 'LEAFLET_PLUGIN_ICONS_DIR' ) )
 	define ("LEAFLET_PLUGIN_ICONS_DIR", $lmm_upload_dir['basedir'] . DIRECTORY_SEPARATOR . "leaflet-maps-marker-icons");
 //info: not in class Leafletmapsmarker as otherwise warnings on resetting defaults options
 require_once( plugin_dir_path( __FILE__ ).'class-leaflet-options.php' );
+require_once( plugin_dir_path( __FILE__ ).'tinyMCE_plugin.php' );
+
 class Leafletmapsmarker
 {
 function leafletmapsmarker() {
