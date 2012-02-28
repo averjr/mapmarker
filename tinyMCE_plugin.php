@@ -51,11 +51,24 @@ function get_my_form(){
     $table_name_markers = $wpdb->prefix.'leafletmapsmarker_markers';
     $table_name_layers = $wpdb->prefix.'leafletmapsmarker_layers';
     
+    $l_condition = isset($_GET['q']) ? "AND l.name LIKE '%" . $_GET['q'] . "%'" : '';
+    $m_condition = isset($_GET['q']) ? "AND m.markername LIKE '%" . $_GET['q'] . "%'" : '';
+    
+    
     $marklist = $wpdb->get_results("
-            (SELECT l.id, l.name as 'name', l.createdon, 'layer' as 'type' FROM $table_name_layers as l WHERE l.id != '0')
+            (SELECT l.id, l.name as 'name', l.createdon, 'layer' as 'type' FROM $table_name_layers as l WHERE l.id != '0' $l_condition)
             UNION
-            (SELECT m.id, m.markername as 'name', m.createdon, 'marker' as 'type' FROM $table_name_markers as m WHERE  m.id != '0')
-            order by createdon DESC", ARRAY_A);
+            (SELECT m.id, m.markername as 'name', m.createdon, 'marker' as 'type' FROM $table_name_markers as m WHERE  m.id != '0' $m_condition)
+            order by createdon DESC LIMIT 30", ARRAY_A);
+            
+
+    
+    if(isset($_GET['q']) && $_GET['q'] != ''){
+        //var_dump( $_GET['q'] );
+        
+        buildMarkersList($marklist);
+        exit();
+    }
 ?>
 
 
@@ -73,16 +86,10 @@ function get_my_form(){
 <body>
 
 <span id="msb_header_description">Please select the maps you would like to include</span>
-<div id="msb_serchContainer">Search <input type="text" /></div>
+<div id="msb_serchContainer">Search <input type="text" name="q" id="msb_serch"/></div>
 <div id="msb_listContainer">
     <div id="msb_listHint" >Please select the maps you would like to include</div>
-    <?php foreach($marklist as $one):?>
-    <div class="list_item">
-        <span class="name"><?php echo $one['name']?></span><span class="date"><?php echo $one['createdon']?></span>
-        <input type="hidden" value="<?php echo $one['type']?>" name="msb_type">
-        <input type="hidden" value="<?php echo $one['id']?>" name="msb_id">
-    </div>
-    <?php endforeach; ?>  
+    <?php buildMarkersList($marklist); ?>
 </div>
 
 <a href="#" id="msb_cancel">Cancel</a>
@@ -125,6 +132,13 @@ function get_my_form(){
                 self.setMarkerID(id)
                 self.setMarkerType(type);
 
+            })
+            
+            $('#msb_serch').live('keyup', function(){
+                $.post('/wp-admin/admin-ajax.php?action=get_my_form&q='+$(this).val(), function(data){
+                        $('.list_item').remove();
+                        $('#msb_listContainer').append(data);
+                })
             })
         },        
         setMarkerID : function(id) {
@@ -172,5 +186,15 @@ function get_my_form(){
   exit;
 }
 
-
+function buildMarkersList($array){
+?>    
+    <?php foreach($array as $one):?>
+    <div class="list_item">
+        <span class="name"><?php echo $one['name']?></span><span class="date"><?php echo $one['createdon']?></span>
+        <input type="hidden" value="<?php echo $one['type']?>" name="msb_type">
+        <input type="hidden" value="<?php echo $one['id']?>" name="msb_id">
+    </div>
+    <?php endforeach; ?>  
+<?php
+}
 ?>
