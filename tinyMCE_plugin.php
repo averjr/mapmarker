@@ -66,49 +66,9 @@ function get_my_form(){
         
         <script type='text/javascript' src='/wp-admin/load-scripts.php?c=1&load=jquery'></script>
         <script type='text/javascript' src='/wp-includes/js/tinymce/tiny_mce_popup.js'></script>
-        <style>
-            #msb_insertMarkerSC{
-                float: right;
-            }
-            #msb_header_description{
-                color:#666666;
+        <script type='text/javascript' src='<?php echo plugins_url( 'leaflet-dist/mm_shortcode.js' , __FILE__ ) ?>'></script>
+        <link   rel='stylesheet'       href='<?php echo plugins_url( 'leaflet-dist/marker_select_box.css' , __FILE__ ) ?>' type='text/css' media='all' />
 
-            }
-            #msb_serchContainer{
-                padding-left: 40px;
-                margin: 5px 0;
-            }
-            #msb_listContainer{
-                height: 350px;
-                width:100%;
-                overflow-y: scroll;
-
-
-            }
-            #msb_listContainer div{
-                border: 1px solid #ccc;
-            }
-            input.button-primary, button.button-primary, a.button-primary {
-                background: url("/wp-admin/images/button-grad.png") repeat-x scroll left top #21759B;
-                border-color: #298CBA;
-                color: #FFFFFF;
-                font-weight: bold;
-                text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
-                   -moz-box-sizing: content-box;
-                border-radius: 11px 11px 11px 11px;
-                border-style: solid;
-                border-width: 1px;
-                cursor: pointer;
-                font-size: 12px !important;
-                line-height: 13px;
-                padding: 3px 8px;
-                text-decoration: none;
-            }
-            #msb_listContainer .list_item{
-                border-top: none;
-                
-            }
-        </style>
 </head>
 <body>
 
@@ -118,7 +78,7 @@ function get_my_form(){
     <div id="msb_listHint" >Please select the maps you would like to include</div>
     <?php foreach($marklist as $one):?>
     <div class="list_item">
-        <span><?php echo $one['name']?></span><span><?php echo $one['createdon']?></span>
+        <span class="name"><?php echo $one['name']?></span><span class="date"><?php echo $one['createdon']?></span>
         <input type="hidden" value="<?php echo $one['type']?>" name="msb_type">
         <input type="hidden" value="<?php echo $one['id']?>" name="msb_id">
     </div>
@@ -130,15 +90,13 @@ function get_my_form(){
 
 <script type="text/javascript">
 (function($){
-    function selectMarkerBox(){
-        this.markerID = '';
-        this.mapsmarkerType = '';
-        //this.shortCode = '[mapsmarker '+ this.mapsmarkerType +'="'+ this.markerID +'"]';
-        self = this;
-    }
+    var selectMarkerBox = {
+        markerID : '',
+        mapsmarkerType : '',
         
-    selectMarkerBox.prototype = {
         init : function(){
+            var self = selectMarkerBox;
+            
             $('.map_marker').live('click', function(){
                 e.preventDefault();
                 console.log( $(this).text() );
@@ -161,30 +119,33 @@ function get_my_form(){
                 var id = $(this).find('input[name="msb_id"]').val();
                 var type = $(this).find('input[name="msb_type"]').val(); 
                 
+                $('.list_item.active').removeClass('active');
+                $(this).addClass('active');
+                
                 self.setMarkerID(id)
                 self.setMarkerType(type);
 
             })
         },        
         setMarkerID : function(id) {
-            this.markerID = id;
+            selectMarkerBox.markerID = id;
         },
         setMarkerType : function(type) {
             switch (type)
             {
                 case 'layer': 
-                    this.mapsmarkerType = 'layer';
+                    selectMarkerBox.mapsmarkerType = 'layer';
                     break;
                 case 'marker': 
-                    this.mapsmarkerType = 'marker';
+                    selectMarkerBox.mapsmarkerType = 'marker';
                     break;
             }
         },
         getShortCode : function(){
-          return '[mapsmarker '+ this.mapsmarkerType +'="'+ this.markerID +'"]';  
+          return '[mapsmarker '+ selectMarkerBox.mapsmarkerType +'="'+ selectMarkerBox.markerID +'"]';  
         },
         insert : function() {
-            tinyMCEPopup.editor.execCommand('mceInsertContent', false, this.getShortCode());
+            tinyMCEPopup.editor.execCommand('mceInsertContent', false, selectMarkerBox.getShortCode());
         },
         
         insertMarker : function() {
@@ -194,14 +155,14 @@ function get_my_form(){
         insertList : function() {
             return;
         },
+        
         close : function() {
             tinyMCEPopup.close();        
         }
         
     }
     
-    markerBox = new selectMarkerBox();
-    markerBox.init();
+    selectMarkerBox.init();
 })(jQuery)
 </script>
 

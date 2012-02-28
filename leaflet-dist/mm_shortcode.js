@@ -1,4 +1,6 @@
 (function($) {
+    
+    
     tinymce.create('tinymce.plugins.mm_shortcode', {
         init : function(ed, url) {
 			ed.addCommand('mm_shortcode', function() {
