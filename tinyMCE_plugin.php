@@ -43,16 +43,16 @@ function add_plugin( $plugin_array ) {
 }
 
 
-add_action('wp_ajax_get_my_form',  'get_my_form');
+add_action('wp_ajax_get_mm_list',  'get_mm_list');
 
-function get_my_form(){
+function get_mm_list(){
     global $wpdb;
 
     $table_name_markers = $wpdb->prefix.'leafletmapsmarker_markers';
     $table_name_layers = $wpdb->prefix.'leafletmapsmarker_layers';
     
-    $l_condition = isset($_GET['q']) ? "AND l.name LIKE '%" . $_GET['q'] . "%'" : '';
-    $m_condition = isset($_GET['q']) ? "AND m.markername LIKE '%" . $_GET['q'] . "%'" : '';
+    $l_condition = isset($_GET['q']) ? "AND l.name LIKE '%" . mysql_real_escape_string($_GET['q']) . "%'" : '';
+    $m_condition = isset($_GET['q']) ? "AND m.markername LIKE '%" . mysql_real_escape_string($_GET['q']) . "%'" : '';
     
     
     $marklist = $wpdb->get_results("
@@ -60,12 +60,8 @@ function get_my_form(){
             UNION
             (SELECT m.id, m.markername as 'name', m.createdon, 'marker' as 'type' FROM $table_name_markers as m WHERE  m.id != '0' $m_condition)
             order by createdon DESC LIMIT 30", ARRAY_A);
-            
 
-    
-    if(isset($_GET['q']) && $_GET['q'] != ''){
-        //var_dump( $_GET['q'] );
-        
+    if(isset($_GET['q']) ){
         buildMarkersList($marklist);
         exit();
     }
@@ -135,7 +131,7 @@ function get_my_form(){
             })
             
             $('#msb_serch').live('keyup', function(){
-                $.post('/wp-admin/admin-ajax.php?action=get_my_form&q='+$(this).val(), function(data){
+                $.post('/wp-admin/admin-ajax.php?action=get_mm_list&q='+$(this).val(), function(data){
                         $('.list_item').remove();
                         $('#msb_listContainer').append(data);
                 })
@@ -188,9 +184,13 @@ function get_my_form(){
 
 function buildMarkersList($array){
 ?>    
-    <?php foreach($array as $one):?>
+    <?php foreach($array as $one):
+
+		$date = DateTime::createFromFormat('Y-m-d H:i:s', $one['createdon']);
+
+	?>
     <div class="list_item">
-        <span class="name"><?php echo $one['name']?></span><span class="date"><?php echo $one['createdon']?></span>
+        <span class="name"><?php echo $one['name']?></span><span class="date"><?php echo $date->format('Y/m/d'); ?></span>
         <input type="hidden" value="<?php echo $one['type']?>" name="msb_type">
         <input type="hidden" value="<?php echo $one['id']?>" name="msb_id">
     </div>
